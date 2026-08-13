@@ -64,28 +64,38 @@ const MULTI_SCHEDULES = {
   }
 };
 
-// 擴充動畫角色池 (包含經典人氣熱血動畫角色)
+// 擴充動畫角色池
 const ANIME_POOL = [
-  // 鬼滅之刃
   "灶門炭治郎", "灶門襧豆子", "我妻善逸", "嘴平伊之助", "煉獄杏壽郎", "富岡義勇", "胡蝶忍", "栗花落香奈乎",
-  // 灌籃高手
   "櫻木花道", "流川楓", "宮城良田", "三井壽", "赤木剛憲", "仙道彰", "藤真健司", "花形透",
-  // 海賊王 (One Piece)
   "蒙其·D·魯夫", "羅羅亞·索隆", "娜美", "騙人布", "香吉士", "多尼多尼·喬巴", "妮可·羅賓", "波特卡斯·D·艾斯",
-  // 咒術迴戰
   "五條悟", "虎杖悠仁", "伏黑惠", "釘崎野薔薇", "乙骨憂太", "狗卷棘", "七海建人", "兩面宿儺",
-  // 排球少年!!
   "日向翔陽", "影山飛雄", "月島螢", "及川徹", "黑尾鐵朗", "孤爪研磨", "宮侑", "木兔光太郎",
-  // 火影忍者
   "漩渦鳴人", "宇智波佐助", "春野櫻", "旗木卡卡西", "我愛羅", "宇智波鼬", "日向雛田",
-  // 進擊的巨人
   "艾連·葉卡", "米卡莎·阿卡曼", "阿爾敏·亞魯雷特", "里維兵長", "艾爾文·史密斯",
-  // 獵人 Hunter x Hunter
   "小傑·富力士", "奇犽·揍敵客", "酷拉皮卡", "雷歐力", "西索",
-  // 七龍珠
   "孫悟空", "貝吉塔", "孫悟飯", "特南克斯", "比克",
-  // 間諜家家酒 & 藍色監獄 & 其餘熱門
   "安妮亞", "洛伊德", "約爾", "潔世一", "蜂樂迴", "凪誠士郎", "糸師凜", "坂田銀時", "齊木楠雄"
+];
+
+// 擴充世界羽球名將角色池 (涵蓋台灣、馬來西亞、丹麥、日本、韓國、中國、印尼、西班牙、印度)
+const BADMINTON_STARS_POOL = [
+  // 台灣
+  "戴資穎", "周天成", "王齊麟", "李洋", "林俊易", "鄧淳薰", "李佳馨", "葉宏蔚", "許玟琪",
+  // 馬來西亞
+  "李宗偉", "李梓嘉", "謝定峰", "蘇偉譯", "陳康樂", "蒂娜",
+  // 丹麥
+  "安賽龍 (Axelsen)", "安東森 (Antonsen)",
+  // 日本
+  "桃田賢斗", "山口茜", "奧原希望", "渡邊勇大", "東野有紗", "保木卓朗", "小林優吾", "志田千陽", "松山奈未",
+  // 韓國
+  "安洗瑩", "徐承宰", "蔡侑玎", "金元昊", "鄭娜銀", "李紹希", "白荷娜",
+  // 中國
+  "林丹", "諶龍", "石宇奇", "陳雨菲", "鄭思維", "黃雅瓊", "賈一凡", "陳清晨", "梁偉鏗", "王昶",
+  // 印尼
+  "金廷 (Ginting)", "喬納坦 (Jonatan)", "蘇卡穆約", "吉德翁", "阿山 (Ahsan)", "塞蒂亞萬",
+  // 西班牙 & 印度
+  "馬琳 (Marin)", "辛度 (Sindhu)"
 ];
 
 // Preset Default Name Templates per count
@@ -99,17 +109,12 @@ const PRESETS = {
     6: ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六"],
     7: ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六", "隊員七"],
     8: ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六", "隊員七", "隊員八"]
-  },
-  stars: {
-    6: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨"],
-    7: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚"],
-    8: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚", "許玟琪"]
   }
 };
 
-// 隨機抽選不重複的動畫角色
-function getRandomAnimeCharacters(count) {
-  const shuffled = [...ANIME_POOL].sort(() => 0.5 - Math.random());
+// 隨機抽選不重複角色 helper
+function getRandomFromPool(pool, count) {
+  const shuffled = [...pool].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 }
 
@@ -184,15 +189,17 @@ function bindEvents() {
     renderAll();
   });
 
+  // 每次點擊隨機抽選世界羽球名將
   document.getElementById("btnPresetStars")?.addEventListener("click", () => {
-    playerNames = [...PRESETS.stars[playerCount]];
+    playerNames = getRandomFromPool(BADMINTON_STARS_POOL, playerCount);
     updateInputValues();
     renderAll();
+    showToast(`🏸 已隨機抽選 ${playerCount} 位世界羽球名將！`);
   });
 
-  // 每次點擊皆隨機抽選 ANIME_POOL 角色
+  // 每次點擊隨機抽選動畫角色
   document.getElementById("btnPresetAnime")?.addEventListener("click", () => {
-    playerNames = getRandomAnimeCharacters(playerCount);
+    playerNames = getRandomFromPool(ANIME_POOL, playerCount);
     updateInputValues();
     renderAll();
     showToast(`✨ 已隨機抽選 ${playerCount} 位動畫角色！`);
