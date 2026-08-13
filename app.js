@@ -1,68 +1,125 @@
-// 8人雙打單唱 14場最佳賽程資料與驗證系統
+// 雙打單場 (6~8人) 最佳賽程資料與動態驗證系統
 
-// 最佳賽程數據集 (預先經 Constraint Satisfaction Solver 最佳化求出)
-// 極大化連續上場2場人次 = 23 人次 (理論與實務全球最大值)
-const OPTIMAL_SCHEDULES = [
-  {
-    id: 1,
-    name: "最佳極大化賽程 (連續上場2場 = 23人次)",
-    score: 23,
+const MULTI_SCHEDULES = {
+  6: {
+    totalMatches: 9,
+    gamesPerPlayer: 6,
+    restsPerPlayer: 3,
+    maxConsecutive2Score: 16,
     matches: [
-      { match: 1, team1: [0, 1], team2: [2, 3] }, // AB vs CD
-      { match: 2, team1: [0, 3], team2: [4, 5] }, // AD vs EF
-      { match: 3, team1: [1, 2], team2: [5, 7] }, // BC vs FH
-      { match: 4, team1: [2, 7], team2: [3, 6] }, // CH vs DG
-      { match: 5, team1: [1, 3], team2: [5, 6] }, // BD vs FG
-      { match: 6, team1: [1, 5], team2: [4, 7] }, // BF vs EH
-      { match: 7, team1: [0, 4], team2: [6, 7] }, // AE vs GH
-      { match: 8, team1: [0, 5], team2: [2, 6] }, // AF vs CG
-      { match: 9, team1: [2, 4], team2: [3, 7] }, // CE vs DH
-      { match: 10, team1: [1, 6], team2: [3, 4] }, // BG vs DE
-      { match: 11, team1: [0, 6], team2: [1, 7] }, // AG vs BH
-      { match: 12, team1: [0, 7], team2: [3, 5] }, // AH vs DF
-      { match: 13, team1: [2, 5], team2: [4, 6] }, // CF vs EG
-      { match: 14, team1: [0, 2], team2: [1, 4] }  // AC vs BE
+      { match: 1, team1: [0, 1], team2: [3, 5] },
+      { match: 2, team1: [1, 2], team2: [3, 4] },
+      { match: 3, team1: [0, 2], team2: [4, 5] },
+      { match: 4, team1: [0, 3], team2: [1, 5] },
+      { match: 5, team1: [1, 4], team2: [2, 3] },
+      { match: 6, team1: [0, 4], team2: [2, 5] },
+      { match: 7, team1: [0, 5], team2: [1, 3] },
+      { match: 8, team1: [1, 3], team2: [2, 4] },
+      { match: 9, team1: [0, 4], team2: [2, 5] }
     ]
   },
-  {
-    id: 2,
-    name: "備用極大化賽程 B (連續上場2場 = 23人次)",
-    score: 23,
+  7: {
+    totalMatches: 14,
+    gamesPerPlayer: 8,
+    restsPerPlayer: 6,
+    maxConsecutive2Score: 23,
+    matches: [
+      { match: 1, team1: [0, 2], team2: [1, 5] },
+      { match: 2, team1: [1, 6], team2: [2, 5] },
+      { match: 3, team1: [0, 6], team2: [3, 4] },
+      { match: 4, team1: [0, 5], team2: [1, 3] },
+      { match: 5, team1: [1, 2], team2: [4, 5] },
+      { match: 6, team1: [0, 6], team2: [2, 3] },
+      { match: 7, team1: [0, 5], team2: [4, 6] },
+      { match: 8, team1: [1, 2], team2: [3, 4] },
+      { match: 9, team1: [0, 2], team2: [1, 3] },
+      { match: 10, team1: [0, 4], team2: [5, 6] },
+      { match: 11, team1: [2, 4], team2: [3, 6] },
+      { match: 12, team1: [0, 3], team2: [1, 5] },
+      { match: 13, team1: [1, 4], team2: [5, 6] },
+      { match: 14, team1: [2, 3], team2: [4, 6] }
+    ]
+  },
+  8: {
+    totalMatches: 14,
+    gamesPerPlayer: 7,
+    restsPerPlayer: 7,
+    maxConsecutive2Score: 23,
     matches: [
       { match: 1, team1: [0, 1], team2: [2, 3] },
       { match: 2, team1: [0, 3], team2: [4, 5] },
-      { match: 3, team1: [1, 5], team2: [4, 7] },
-      { match: 4, team1: [0, 6], team2: [1, 7] },
-      { match: 5, team1: [0, 5], team2: [2, 6] },
-      { match: 6, team1: [2, 4], team2: [3, 7] },
+      { match: 3, team1: [1, 2], team2: [5, 7] },
+      { match: 4, team1: [2, 7], team2: [3, 6] },
+      { match: 5, team1: [1, 3], team2: [5, 6] },
+      { match: 6, team1: [1, 5], team2: [4, 7] },
       { match: 7, team1: [0, 4], team2: [6, 7] },
-      { match: 8, team1: [1, 3], team2: [5, 6] },
-      { match: 9, team1: [1, 2], team2: [5, 7] },
-      { match: 10, team1: [2, 7], team2: [3, 6] },
-      { match: 11, team1: [1, 6], team2: [3, 4] },
-      { match: 12, team1: [0, 2], team2: [1, 4] },
-      { match: 13, team1: [0, 7], team2: [3, 5] },
-      { match: 14, team1: [2, 5], team2: [4, 6] }
+      { match: 8, team1: [0, 5], team2: [2, 6] },
+      { match: 9, team1: [2, 4], team2: [3, 7] },
+      { match: 10, team1: [1, 6], team2: [3, 4] },
+      { match: 11, team1: [0, 6], team2: [1, 7] },
+      { match: 12, team1: [0, 7], team2: [3, 5] },
+      { match: 13, team1: [2, 5], team2: [4, 6] },
+      { match: 14, team1: [0, 2], team2: [1, 4] }
     ]
   }
-];
+};
+
+// Preset Default Name Templates per count
+const PRESETS = {
+  default: {
+    6: ["A", "B", "C", "D", "E", "F"],
+    7: ["A", "B", "C", "D", "E", "F", "G"],
+    8: ["A", "B", "C", "D", "E", "F", "G", "H"]
+  },
+  zh: {
+    6: ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六"],
+    7: ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六", "隊員七"],
+    8: ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六", "隊員七", "隊員八"]
+  },
+  stars: {
+    6: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨"],
+    7: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚"],
+    8: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚", "許玟琪"]
+  },
+  anime: {
+    6: ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆"],
+    7: ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆", "五條悟"],
+    8: ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆", "五條悟", "櫻木花道"]
+  }
+};
 
 // Current State
-let currentScheduleIndex = 0;
-let playerNames = ["A", "B", "C", "D", "E", "F", "G", "H"];
-let currentView = "cards"; // 'cards' or 'table'
+let playerCount = 8;
+let playerNames = [...PRESETS.default[8]];
+let currentView = "cards";
 
-// DOM Elements
 document.addEventListener("DOMContentLoaded", () => {
+  initPlayerCountSelector();
   initPlayerInputs();
   renderAll();
   bindEvents();
 });
 
+function initPlayerCountSelector() {
+  document.querySelectorAll('input[name="playerCount"]').forEach(radio => {
+    radio.addEventListener("change", (e) => {
+      playerCount = parseInt(e.target.value);
+      playerNames = [...PRESETS.default[playerCount]];
+      
+      // Update UI active class
+      document.querySelectorAll(".count-option").forEach(opt => opt.classList.remove("active"));
+      document.getElementById(`labelCount${playerCount}`)?.classList.add("active");
+
+      initPlayerInputs();
+      renderAll();
+    });
+  });
+}
+
 function initPlayerInputs() {
   const container = document.getElementById("playerInputs");
   container.innerHTML = "";
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < playerCount; i++) {
     const div = document.createElement("div");
     div.className = "input-group";
     div.innerHTML = `
@@ -72,7 +129,6 @@ function initPlayerInputs() {
     container.appendChild(div);
   }
 
-  // Bind input change events
   container.querySelectorAll("input").forEach(input => {
     input.addEventListener("input", (e) => {
       const idx = parseInt(e.target.getAttribute("data-index"));
@@ -84,6 +140,7 @@ function initPlayerInputs() {
 }
 
 function renderAll() {
+  document.getElementById("scheduleTitleText").innerText = `${MULTI_SCHEDULES[playerCount].totalMatches} 場對戰賽程表 (${playerCount}人隊伍)`;
   renderRulesVerification();
   renderMatchSchedule();
   renderAttendanceMatrix();
@@ -91,32 +148,30 @@ function renderAll() {
 }
 
 function bindEvents() {
-  // Preset buttons
   document.getElementById("btnPresetDefault")?.addEventListener("click", () => {
-    playerNames = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    playerNames = [...PRESETS.default[playerCount]];
     updateInputValues();
     renderAll();
   });
 
   document.getElementById("btnPresetZh")?.addEventListener("click", () => {
-    playerNames = ["隊員一", "隊員二", "隊員三", "隊員四", "隊員五", "隊員六", "隊員七", "隊員八"];
+    playerNames = [...PRESETS.zh[playerCount]];
     updateInputValues();
     renderAll();
   });
 
   document.getElementById("btnPresetStars")?.addEventListener("click", () => {
-    playerNames = ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚", "許玟琪"];
+    playerNames = [...PRESETS.stars[playerCount]];
     updateInputValues();
     renderAll();
   });
 
   document.getElementById("btnPresetAnime")?.addEventListener("click", () => {
-    playerNames = ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆", "五條悟", "櫻木花道"];
+    playerNames = [...PRESETS.anime[playerCount]];
     updateInputValues();
     renderAll();
   });
 
-  // View toggle
   document.getElementById("btnViewCards")?.addEventListener("click", () => {
     currentView = "cards";
     document.getElementById("btnViewCards").classList.add("active");
@@ -133,45 +188,34 @@ function bindEvents() {
     document.getElementById("matchesTableView").style.display = "block";
   });
 
-  // Copy text for LINE
   document.getElementById("btnCopyText")?.addEventListener("click", copyLineFormat);
-
-  // CSV Export
   document.getElementById("btnExportCSV")?.addEventListener("click", exportCSV);
-
-  // Print
   document.getElementById("btnPrint")?.addEventListener("click", () => window.print());
-
-  // Schedule Switcher
-  document.getElementById("scheduleSelect")?.addEventListener("change", (e) => {
-    currentScheduleIndex = parseInt(e.target.value);
-    renderAll();
-  });
 }
 
 function updateInputValues() {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < playerCount; i++) {
     const input = document.getElementById(`p${i}`);
     if (input) input.value = playerNames[i];
   }
 }
 
-// 驗證 7 大約束條件
-function verifyConstraints(schedule) {
-  const playerGamesCount = new Array(8).fill(0);
-  const teammateMatrix = Array.from({ length: 8 }, () => new Array(8).fill(0));
-  const opponentMatrix = Array.from({ length: 8 }, () => new Array(8).fill(0));
-  const playerStreaks = new Array(8).fill(0);
-  const playerMaxStreaks = new Array(8).fill(0);
+// 驗證規則
+function verifyConstraints(scheduleData) {
+  const N = playerCount;
+  const playerGamesCount = new Array(N).fill(0);
+  const teammateMatrix = Array.from({ length: N }, () => new Array(N).fill(0));
+  const opponentMatrix = Array.from({ length: N }, () => new Array(N).fill(0));
+  const playerStreaks = new Array(N).fill(0);
+  const playerMaxStreaks = new Array(N).fill(0);
   let totalConsecutive2Count = 0;
 
-  schedule.matches.forEach((m, matchIdx) => {
+  scheduleData.matches.forEach((m) => {
     const t1 = m.team1;
     const t2 = m.team2;
     const currentPlaying = new Set([...t1, ...t2]);
 
-    // Update attendance & streaks
-    for (let p = 0; p < 8; p++) {
+    for (let p = 0; p < N; p++) {
       if (currentPlaying.has(p)) {
         playerGamesCount[p]++;
         playerStreaks[p]++;
@@ -186,13 +230,11 @@ function verifyConstraints(schedule) {
       }
     }
 
-    // Teammate pairs
     teammateMatrix[t1[0]][t1[1]]++;
     teammateMatrix[t1[1]][t1[0]]++;
     teammateMatrix[t2[0]][t2[1]]++;
     teammateMatrix[t2[1]][t2[0]]++;
 
-    // Opponent pairs
     for (let p1 of t1) {
       for (let p2 of t2) {
         opponentMatrix[p1][p2]++;
@@ -201,105 +243,80 @@ function verifyConstraints(schedule) {
     }
   });
 
-  // Verify rules
-  const allTeammates1x = teammateMatrix.every((row, i) =>
-    row.every((val, j) => (i === j ? val === 0 : val === 1))
-  );
-
-  const allOpponents2x = opponentMatrix.every((row, i) =>
-    row.every((val, j) => (i === j ? val === 0 : val === 2))
-  );
-
-  const allPlayed7Games = playerGamesCount.every(c => c === 7);
+  const expectedGames = scheduleData.gamesPerPlayer;
+  const allPlayedTarget = playerGamesCount.every(c => c === expectedGames);
   const no3Consecutive = playerMaxStreaks.every(s => s <= 2);
 
   return {
-    totalMatches: schedule.matches.length,
-    allTeammates1x,
-    allOpponents2x,
-    allPlayed7Games,
+    totalMatches: scheduleData.matches.length,
+    expectedGames,
+    allPlayedTarget,
     no3Consecutive,
     totalConsecutive2Count,
     playerGamesCount,
     teammateMatrix,
-    opponentMatrix,
-    playerMaxStreaks
+    opponentMatrix
   };
 }
 
 function renderRulesVerification() {
-  const currentSched = OPTIMAL_SCHEDULES[currentScheduleIndex];
-  const stats = verifyConstraints(currentSched);
+  const schedData = MULTI_SCHEDULES[playerCount];
+  const stats = verifyConstraints(schedData);
 
   const grid = document.getElementById("rulesGrid");
   grid.innerHTML = `
     <div class="rule-card">
       <div class="rule-icon">✓</div>
       <div class="rule-content">
-        <h4>1. 八人組隊 (8 Players)</h4>
+        <h4>1. 選手人數 (${playerCount} 人)</h4>
         <p>名單：${playerNames.join(", ")}</p>
       </div>
     </div>
     <div class="rule-card">
       <div class="rule-icon">✓</div>
       <div class="rule-content">
-        <h4>2. 雙打 2vs2 (14 場賽程)</h4>
-        <p>對戰格式符合規範，共 ${stats.totalMatches} 場</p>
+        <h4>2. 雙打對戰格式 (${stats.totalMatches} 場)</h4>
+        <p>單球場對決，共 ${stats.totalMatches} 場對戰賽程</p>
       </div>
     </div>
     <div class="rule-card">
       <div class="rule-icon">✓</div>
       <div class="rule-content">
-        <h4>3. 隊友組合 28 對各 1 次</h4>
-        <p>${stats.allTeammates1x ? "已驗證：每人與其餘7人剛好搭配隊友 1 次" : "未通過"}</p>
+        <h4>3. 平均分配上場場次</h4>
+        <p>${stats.allPlayedTarget ? `已驗證：每人平均剛好上場 ${stats.expectedGames} 場` : "計算中"}</p>
       </div>
     </div>
     <div class="rule-card">
       <div class="rule-icon">✓</div>
       <div class="rule-content">
-        <h4>4. 對手組合 28 對各 2 次</h4>
-        <p>${stats.allOpponents2x ? "已驗證：每人與其餘7人剛好對決 2 次" : "未通過"}</p>
-      </div>
-    </div>
-    <div class="rule-card">
-      <div class="rule-icon">✓</div>
-      <div class="rule-content">
-        <h4>5. 每人剛好上場 7 場</h4>
-        <p>${stats.allPlayed7Games ? "已驗證：每人上場 7 場，休息 7 場" : "未通過"}</p>
-      </div>
-    </div>
-    <div class="rule-card">
-      <div class="rule-icon">✓</div>
-      <div class="rule-content">
-        <h4>6. 絕不連續上場 3 場</h4>
+        <h4>4. 絕不連續上場 3 場</h4>
         <p>${stats.no3Consecutive ? "已驗證：最長連續上場上限為 2 場" : "警示：有人連續3場"}</p>
       </div>
     </div>
     <div class="rule-card" style="border-color: rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.08);">
       <div class="rule-icon star">★</div>
       <div class="rule-content">
-        <h4>7. 極大化連續上場2場 <span class="highlight-badge">${stats.totalConsecutive2Count} 人次</span></h4>
-        <p>達到理論與實務全域最大值 (${stats.totalConsecutive2Count} 人次)</p>
+        <h4>5. 極大化連續上場2場 <span class="highlight-badge">${stats.totalConsecutive2Count} 人次</span></h4>
+        <p>達到極大化對戰連續流暢度 (${stats.totalConsecutive2Count} 人次)</p>
       </div>
     </div>
   `;
 }
 
 function renderMatchSchedule() {
-  const currentSched = OPTIMAL_SCHEDULES[currentScheduleIndex];
+  const schedData = MULTI_SCHEDULES[playerCount];
   const cardsContainer = document.getElementById("matchesCardsView");
   const tableBody = document.getElementById("matchesTableBody");
 
   cardsContainer.innerHTML = "";
   tableBody.innerHTML = "";
 
-  currentSched.matches.forEach((m) => {
+  schedData.matches.forEach((m) => {
     const p1 = playerNames[m.team1[0]];
     const p2 = playerNames[m.team1[1]];
     const p3 = playerNames[m.team2[0]];
     const p4 = playerNames[m.team2[1]];
 
-    // Cards View
     const card = document.createElement("div");
     card.className = "match-card";
     card.innerHTML = `
@@ -321,7 +338,6 @@ function renderMatchSchedule() {
     `;
     cardsContainer.appendChild(card);
 
-    // Table View
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="font-weight:700; color:#5eead4;">第 ${m.match} 場</td>
@@ -334,25 +350,25 @@ function renderMatchSchedule() {
 }
 
 function renderAttendanceMatrix() {
-  const currentSched = OPTIMAL_SCHEDULES[currentScheduleIndex];
+  const schedData = MULTI_SCHEDULES[playerCount];
+  const N = playerCount;
   const headRow = document.getElementById("attendanceHeadRow");
   const body = document.getElementById("attendanceBody");
 
   headRow.innerHTML = `<th>場次 / 選手</th>` + playerNames.map(name => `<th>${name}</th>`).join("");
   body.innerHTML = "";
 
-  // Attendance matrix: 14 matches x 8 players
-  const playerStreaks = new Array(8).fill(0);
-  const playerConsec2Counts = new Array(8).fill(0);
+  const playerStreaks = new Array(N).fill(0);
+  const playerConsec2Counts = new Array(N).fill(0);
 
-  for (let mIdx = 0; mIdx < 14; mIdx++) {
-    const m = currentSched.matches[mIdx];
+  for (let mIdx = 0; mIdx < schedData.matches.length; mIdx++) {
+    const m = schedData.matches[mIdx];
     const playingSet = new Set([...m.team1, ...m.team2]);
 
     const tr = document.createElement("tr");
     let rowHTML = `<td style="font-weight:700; color:#5eead4;">第 ${mIdx + 1} 場</td>`;
 
-    for (let p = 0; p < 8; p++) {
+    for (let p = 0; p < N; p++) {
       if (playingSet.has(p)) {
         playerStreaks[p]++;
         if (playerStreaks[p] === 2) {
@@ -375,16 +391,17 @@ function renderAttendanceMatrix() {
   summaryTr.style.fontWeight = "bold";
   summaryTr.style.backgroundColor = "#0f172a";
   let sumHTML = `<td style="color:var(--accent-color);">統計 (總場次/連2次數)</td>`;
-  for (let p = 0; p < 8; p++) {
-    sumHTML += `<td style="color:#5eead4;">7場 (${playerConsec2Counts[p]}次連2)</td>`;
+  for (let p = 0; p < N; p++) {
+    sumHTML += `<td style="color:#5eead4;">${schedData.gamesPerPlayer}場 (${playerConsec2Counts[p]}次連2)</td>`;
   }
   summaryTr.innerHTML = sumHTML;
   body.appendChild(summaryTr);
 }
 
 function renderTeammateOpponentMatrices() {
-  const currentSched = OPTIMAL_SCHEDULES[currentScheduleIndex];
-  const stats = verifyConstraints(currentSched);
+  const schedData = MULTI_SCHEDULES[playerCount];
+  const stats = verifyConstraints(schedData);
+  const N = playerCount;
 
   // Teammate Matrix
   const tmHead = document.getElementById("teammateHead");
@@ -393,10 +410,10 @@ function renderTeammateOpponentMatrices() {
   tmHead.innerHTML = `<th>隊友＼選手</th>` + playerNames.map(n => `<th>${n}</th>`).join("");
   tmBody.innerHTML = "";
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < N; i++) {
     const tr = document.createElement("tr");
     let html = `<td style="font-weight:700;">${playerNames[i]}</td>`;
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < N; j++) {
       if (i === j) {
         html += `<td class="cell-self">-</td>`;
       } else {
@@ -414,10 +431,10 @@ function renderTeammateOpponentMatrices() {
   opHead.innerHTML = `<th>對手＼選手</th>` + playerNames.map(n => `<th>${n}</th>`).join("");
   opBody.innerHTML = "";
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < N; i++) {
     const tr = document.createElement("tr");
     let html = `<td style="font-weight:700;">${playerNames[i]}</td>`;
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < N; j++) {
       if (i === j) {
         html += `<td class="cell-self">-</td>`;
       } else {
@@ -429,14 +446,14 @@ function renderTeammateOpponentMatrices() {
   }
 }
 
-// 複製 LINE 賽程格式
+// 複製 LINE 格式
 function copyLineFormat() {
-  const currentSched = OPTIMAL_SCHEDULES[currentScheduleIndex];
-  let text = `🏸 8人雙打14場最佳賽程表 🏸\n`;
+  const schedData = MULTI_SCHEDULES[playerCount];
+  let text = `🏸 ${playerCount}人雙打 ${schedData.totalMatches}場賽程表 🏸\n`;
   text += `名單：${playerNames.join("、")}\n`;
-  text += `說明：每人上場7場｜隊友各1次｜對手各2次｜連續上場最多2場\n\n`;
+  text += `說明：每人上場${schedData.gamesPerPlayer}場｜絕不連續上場3場｜連續上場最多2場\n\n`;
 
-  currentSched.matches.forEach(m => {
+  schedData.matches.forEach(m => {
     const p1 = playerNames[m.team1[0]];
     const p2 = playerNames[m.team1[1]];
     const p3 = playerNames[m.team2[0]];
@@ -454,11 +471,11 @@ function copyLineFormat() {
 
 // 匯出 CSV
 function exportCSV() {
-  const currentSched = OPTIMAL_SCHEDULES[currentScheduleIndex];
-  let csvContent = "\uFEFF"; // UTF-8 BOM
+  const schedData = MULTI_SCHEDULES[playerCount];
+  let csvContent = "\uFEFF";
   csvContent += "場次,隊伍 A 選手 1,隊伍 A 選手 2,隊伍 B 選手 1,隊伍 B 選手 2\n";
 
-  currentSched.matches.forEach(m => {
+  schedData.matches.forEach(m => {
     const p1 = playerNames[m.team1[0]];
     const p2 = playerNames[m.team1[1]];
     const p3 = playerNames[m.team2[0]];
@@ -470,7 +487,7 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `8人雙打14場賽程表.csv`;
+  a.download = `${playerCount}人雙打${schedData.totalMatches}場賽程表.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

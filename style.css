@@ -70,6 +70,54 @@ header p {
   line-height: 1.6;
 }
 
+/* Count Selector */
+.count-selector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  background: #0f172a;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+}
+
+.count-option {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-sub);
+}
+
+.count-option:hover {
+  border-color: var(--primary-color);
+  background: rgba(13, 148, 136, 0.1);
+  color: #fff;
+}
+
+.count-option input[type="radio"] {
+  accent-color: var(--primary-color);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.count-option.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+}
+
 /* Cards */
 .card {
   background-color: var(--card-bg);
@@ -527,7 +575,7 @@ footer {
     color: #000 !important;
     box-shadow: none !important;
   }
-  .btn-group, .preset-pills, .tab-controls {
+  .btn-group, .preset-pills, .tab-controls, .count-selector {
     display: none !important;
   }
   .match-card {
