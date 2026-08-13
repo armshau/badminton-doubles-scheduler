@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8人雙打單唱 14場賽程產生器與驗證工具</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <h1>🏸 8人雙打單唱 14場賽程規劃器</h1>
+      <p>
+        自動求解並極大化「連續上場 2 場人次（達 <strong>23 人次</strong>）」且滿足所有條件：
+        每人與另外 7 人各組隊 1 次、各當對手 2 次、剛好上場 7 場，絕不連續上場 3 場！
+      </p>
+    </header>
+
+    <!-- Player Inputs Card -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">👥</span>
+        <span>自訂 8 位選手姓名</span>
+      </div>
+
+      <div class="player-grid" id="playerInputs">
+        <!-- Input fields injected by app.js -->
+      </div>
+
+      <div class="preset-pills">
+        <span>快速預設範本：</span>
+        <button class="pill-btn" id="btnPresetDefault">預設 (A ~ H)</button>
+        <button class="pill-btn" id="btnPresetZh">隊員一 ~ 隊員八</button>
+        <button class="pill-btn" id="btnPresetStars">台灣羽球名將</button>
+      </div>
+    </div>
+
+    <!-- Rule Verification Dashboard -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">🛡️</span>
+        <span>七大規則合規驗證儀表板</span>
+      </div>
+      <div class="rules-grid" id="rulesGrid">
+        <!-- Injected by app.js -->
+      </div>
+    </div>
+
+    <!-- Match Schedule Card -->
+    <div class="card">
+      <div class="tab-controls">
+        <div class="card-title" style="border:none; margin:0; padding:0;">
+          <span class="icon">🏆</span>
+          <span>14 場對戰賽程表</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <select id="scheduleSelect" class="btn btn-outline" style="background:#0f172a; padding:8px 12px; cursor:pointer;">
+            <option value="0">最佳賽程 A (連2人次 = 23)</option>
+            <option value="1">備用賽程 B (連2人次 = 23)</option>
+          </select>
+
+          <div class="tab-buttons">
+            <button class="tab-btn active" id="btnViewCards">卡片視圖</button>
+            <button class="tab-btn" id="btnViewTable">表格視圖</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-bottom: 20px;">
+        <button class="btn btn-primary" id="btnCopyText">📋 複製賽程 (LINE 格式)</button>
+        <button class="btn btn-secondary" id="btnExportCSV">📥 匯出 CSV 檔</button>
+        <button class="btn btn-outline" id="btnPrint">🖨️ 列印賽程表</button>
+      </div>
+
+      <!-- Cards View -->
+      <div class="matches-grid" id="matchesCardsView">
+        <!-- Injected by app.js -->
+      </div>
+
+      <!-- Table View (Hidden by default) -->
+      <div class="table-wrapper" id="matchesTableView" style="display: none;">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>場次</th>
+              <th>隊伍 A (隊友 1 & 2)</th>
+              <th>VS</th>
+              <th>隊伍 B (隊友 3 & 4)</th>
+            </tr>
+          </thead>
+          <tbody id="matchesTableBody">
+            <!-- Injected by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Attendance & Rest Matrix Card -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">📊</span>
+        <span>選手上場 / 休息與連續 2 場矩陣表</span>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:16px;">
+        黃色高亮標籤 <span class="badge-consec">連2</span> 代表選手連續第 2 場上場，本賽程無任何連續 3 場上場情形。
+      </p>
+
+      <div class="table-wrapper">
+        <table class="matrix-table">
+          <thead>
+            <tr id="attendanceHeadRow">
+              <!-- Injected by app.js -->
+            </tr>
+          </thead>
+          <tbody id="attendanceBody">
+            <!-- Injected by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Teammates & Opponents Matrices Card -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">🤝</span>
+        <span>隊友組合 (各1次) 與對手對決 (各2次) 檢驗矩陣</span>
+      </div>
+
+      <div class="matrices-grid">
+        <!-- Teammate Matrix -->
+        <div class="matrix-card">
+          <h4 style="margin-bottom:10px; color:#6ee7b7; text-align:center;">隊友搭配次數矩陣 (全部剛好 1 次)</h4>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr id="teammateHead"></tr>
+              </thead>
+              <tbody id="teammateBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Opponent Matrix -->
+        <div class="matrix-card">
+          <h4 style="margin-bottom:10px; color:#93c5fd; text-align:center;">對手對決次數矩陣 (全部剛好 2 次)</h4>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr id="opponentHead"></tr>
+              </thead>
+              <tbody id="opponentBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>8人雙打單唱 14場賽程產生器 &copy; 2026. 演算法經 Constraint Satisfaction Algorithm 全域求解最佳化驗證。</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
