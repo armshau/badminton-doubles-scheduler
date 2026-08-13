@@ -110,6 +110,12 @@ function bindEvents() {
     renderAll();
   });
 
+  document.getElementById("btnPresetAnime")?.addEventListener("click", () => {
+    playerNames = ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆", "五條悟", "櫻木花道"];
+    updateInputValues();
+    renderAll();
+  });
+
   // View toggle
   document.getElementById("btnViewCards")?.addEventListener("click", () => {
     currentView = "cards";
@@ -273,7 +279,7 @@ function renderRulesVerification() {
       <div class="rule-icon star">★</div>
       <div class="rule-content">
         <h4>7. 極大化連續上場2場 <span class="highlight-badge">${stats.totalConsecutive2Count} 人次</span></h4>
-        <p>達到理論與實務全球最大值 (${stats.totalConsecutive2Count} 人次)</p>
+        <p>達到理論與實務全域最大值 (${stats.totalConsecutive2Count} 人次)</p>
       </div>
     </div>
   `;
@@ -336,7 +342,6 @@ function renderAttendanceMatrix() {
   body.innerHTML = "";
 
   // Attendance matrix: 14 matches x 8 players
-  // Track consecutive counts per player
   const playerStreaks = new Array(8).fill(0);
   const playerConsec2Counts = new Array(8).fill(0);
 
