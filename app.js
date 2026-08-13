@@ -64,6 +64,30 @@ const MULTI_SCHEDULES = {
   }
 };
 
+// 擴充動畫角色池 (包含經典人氣熱血動畫角色)
+const ANIME_POOL = [
+  // 鬼滅之刃
+  "灶門炭治郎", "灶門襧豆子", "我妻善逸", "嘴平伊之助", "煉獄杏壽郎", "富岡義勇", "胡蝶忍", "栗花落香奈乎",
+  // 灌籃高手
+  "櫻木花道", "流川楓", "宮城良田", "三井壽", "赤木剛憲", "仙道彰", "藤真健司", "花形透",
+  // 海賊王 (One Piece)
+  "蒙其·D·魯夫", "羅羅亞·索隆", "娜美", "騙人布", "香吉士", "多尼多尼·喬巴", "妮可·羅賓", "波特卡斯·D·艾斯",
+  // 咒術迴戰
+  "五條悟", "虎杖悠仁", "伏黑惠", "釘崎野薔薇", "乙骨憂太", "狗卷棘", "七海建人", "兩面宿儺",
+  // 排球少年!!
+  "日向翔陽", "影山飛雄", "月島螢", "及川徹", "黑尾鐵朗", "孤爪研磨", "宮侑", "木兔光太郎",
+  // 火影忍者
+  "漩渦鳴人", "宇智波佐助", "春野櫻", "旗木卡卡西", "我愛羅", "宇智波鼬", "日向雛田",
+  // 進擊的巨人
+  "艾連·葉卡", "米卡莎·阿卡曼", "阿爾敏·亞魯雷特", "里維兵長", "艾爾文·史密斯",
+  // 獵人 Hunter x Hunter
+  "小傑·富力士", "奇犽·揍敵客", "酷拉皮卡", "雷歐力", "西索",
+  // 七龍珠
+  "孫悟空", "貝吉塔", "孫悟飯", "特南克斯", "比克",
+  // 間諜家家酒 & 藍色監獄 & 其餘熱門
+  "安妮亞", "洛伊德", "約爾", "潔世一", "蜂樂迴", "凪誠士郎", "糸師凜", "坂田銀時", "齊木楠雄"
+];
+
 // Preset Default Name Templates per count
 const PRESETS = {
   default: {
@@ -80,13 +104,14 @@ const PRESETS = {
     6: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨"],
     7: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚"],
     8: ["戴資穎", "周天成", "王齊麟", "李洋", "鄧淳薰", "李佳馨", "葉宏蔚", "許玟琪"]
-  },
-  anime: {
-    6: ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆"],
-    7: ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆", "五條悟"],
-    8: ["炭治郎", "襧豆子", "我妻善逸", "嘴平伊之助", "魯夫", "索隆", "五條悟", "櫻木花道"]
   }
 };
+
+// 隨機抽選不重複的動畫角色
+function getRandomAnimeCharacters(count) {
+  const shuffled = [...ANIME_POOL].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
 
 // Current State
 let playerCount = 8;
@@ -106,7 +131,6 @@ function initPlayerCountSelector() {
       playerCount = parseInt(e.target.value);
       playerNames = [...PRESETS.default[playerCount]];
       
-      // Update UI active class
       document.querySelectorAll(".count-option").forEach(opt => opt.classList.remove("active"));
       document.getElementById(`labelCount${playerCount}`)?.classList.add("active");
 
@@ -166,10 +190,12 @@ function bindEvents() {
     renderAll();
   });
 
+  // 每次點擊皆隨機抽選 ANIME_POOL 角色
   document.getElementById("btnPresetAnime")?.addEventListener("click", () => {
-    playerNames = [...PRESETS.anime[playerCount]];
+    playerNames = getRandomAnimeCharacters(playerCount);
     updateInputValues();
     renderAll();
+    showToast(`✨ 已隨機抽選 ${playerCount} 位動畫角色！`);
   });
 
   document.getElementById("btnViewCards")?.addEventListener("click", () => {
@@ -200,7 +226,6 @@ function updateInputValues() {
   }
 }
 
-// 驗證規則
 function verifyConstraints(scheduleData) {
   const N = playerCount;
   const playerGamesCount = new Array(N).fill(0);
@@ -386,7 +411,6 @@ function renderAttendanceMatrix() {
     body.appendChild(tr);
   }
 
-  // Summary Row
   const summaryTr = document.createElement("tr");
   summaryTr.style.fontWeight = "bold";
   summaryTr.style.backgroundColor = "#0f172a";
@@ -403,7 +427,6 @@ function renderTeammateOpponentMatrices() {
   const stats = verifyConstraints(schedData);
   const N = playerCount;
 
-  // Teammate Matrix
   const tmHead = document.getElementById("teammateHead");
   const tmBody = document.getElementById("teammateBody");
 
@@ -424,7 +447,6 @@ function renderTeammateOpponentMatrices() {
     tmBody.appendChild(tr);
   }
 
-  // Opponent Matrix
   const opHead = document.getElementById("opponentHead");
   const opBody = document.getElementById("opponentBody");
 
@@ -446,7 +468,6 @@ function renderTeammateOpponentMatrices() {
   }
 }
 
-// 複製 LINE 格式
 function copyLineFormat() {
   const schedData = MULTI_SCHEDULES[playerCount];
   let text = `🏸 ${playerCount}人雙打 ${schedData.totalMatches}場賽程表 🏸\n`;
@@ -469,7 +490,6 @@ function copyLineFormat() {
   });
 }
 
-// 匯出 CSV
 function exportCSV() {
   const schedData = MULTI_SCHEDULES[playerCount];
   let csvContent = "\uFEFF";
